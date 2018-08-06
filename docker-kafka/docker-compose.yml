@@ -1,0 +1,118 @@
+version: '3'
+services:
+  zoo1:
+    image: zookeeper
+    restart: always
+    hostname: zoo1
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - /c/docker-volumes/test-kafka-stream/zoo1/data:/data
+      - /c/docker-volumes/test-kafka-stream/zoo1/datalog:/datalog
+  zoo2:
+    image: zookeeper
+    restart: always
+    hostname: zoo2
+    ports:
+      - 2182:2181
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - /c/docker-volumes/test-kafka-stream/zoo2/data:/data
+      - /c/docker-volumes/test-kafka-stream/zoo2/datalog:/datalog
+  zoo3:
+    image: zookeeper
+    restart: always
+    hostname: zoo3
+    ports:
+      - 2183:2181
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
+    volumes:
+      - /c/docker-volumes/test-kafka-stream/zoo3/data:/data
+      - /c/docker-volumes/test-kafka-stream/zoo3/datalog:/datalog
+  kafka1:
+    image: wurstmeister/kafka
+    restart: always
+    ports:
+      - "31091:19092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
+      HOSTNAME_COMMAND: echo '10.0.75.2'
+      BROKER_ID_COMMAND: echo '1'
+      PORT_COMMAND: echo '31091'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:_{PORT_COMMAND}
+      KAFKA_LISTENERS: PLAINTEXT://:9092,OUTSIDE://:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      #TOPIC_NAME:PARTITION:RECPLICATION_FACTOR
+      KAFKA_CREATE_TOPICS: >-
+                           kafka.first:5:2,
+                           kafka.second:5:2,
+                           kafka.third:5:2
+    volumes:
+      - /c/docker-volumes/test-kafka-stream/kafka1/data:/kafka
+#      - /c/docker-volumes/test-kafka-stream/kafka1/config:/opt/kafka/config
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+  kafka2:
+    image: wurstmeister/kafka
+    restart: always
+    ports:
+      - "31092:19092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
+      HOSTNAME_COMMAND: echo '10.0.75.2'
+      BROKER_ID_COMMAND: echo '2'
+      PORT_COMMAND: echo '31092'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:_{PORT_COMMAND}
+      KAFKA_LISTENERS: PLAINTEXT://:9092,OUTSIDE://:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CREATE_TOPICS: >-
+                           kafka.first:5:2,
+                           kafka.second:5:2,
+                           kafka.third:5:2
+    volumes:
+      - /c/docker-volumes/test-kafka-stream/kafka2/data:/kafka
+#      - /c/docker-volumes/test-kafka-stream/kafka2/config:/opt/kafka/config
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+  kafka3:
+    image: wurstmeister/kafka
+    restart: always
+    ports:
+      - "31093:19092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
+      HOSTNAME_COMMAND: echo '10.0.75.2'
+      BROKER_ID_COMMAND: echo '3'
+      PORT_COMMAND: echo '31093'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:_{PORT_COMMAND}
+      KAFKA_LISTENERS: PLAINTEXT://:9092,OUTSIDE://:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      #TOPIC_NAME:PARTITION:RECPLICATION_FACTOR
+      KAFKA_CREATE_TOPICS: >-
+                           kafka.first:5:2,
+                           kafka.second:5:2,
+                           kafka.third:5:2
+    volumes:
+      - /c/docker-volumes/test-kafka-stream/kafka3/data:/kafka
+#      - /c/docker-volumes/test-kafka-stream/kafka3/config:/opt/kafka/config
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+
+#example run command:
+#docker-compose -f docker-compose.yml -p testkafkastream up
