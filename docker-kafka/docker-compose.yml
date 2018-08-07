@@ -52,9 +52,9 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       #TOPIC_NAME:PARTITION:RECPLICATION_FACTOR
       KAFKA_CREATE_TOPICS: >-
-                           kafka.first:5:2,
-                           kafka.second:5:2,
-                           kafka.third:5:2
+                           kafka.stream.first:5:2,
+                           kafka.stream.second:5:2,
+                           kafka.stream.third:5:2
     volumes:
       - /c/docker-volumes/test-kafka-stream/kafka1/data:/kafka
 #      - /c/docker-volumes/test-kafka-stream/kafka1/config:/opt/kafka/config
@@ -77,9 +77,9 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,OUTSIDE:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CREATE_TOPICS: >-
-                           kafka.first:5:2,
-                           kafka.second:5:2,
-                           kafka.third:5:2
+                           kafka.stream.first:5:2,
+                           kafka.stream.second:5:2,
+                           kafka.stream.third:5:2
     volumes:
       - /c/docker-volumes/test-kafka-stream/kafka2/data:/kafka
 #      - /c/docker-volumes/test-kafka-stream/kafka2/config:/opt/kafka/config
@@ -103,9 +103,9 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       #TOPIC_NAME:PARTITION:RECPLICATION_FACTOR
       KAFKA_CREATE_TOPICS: >-
-                           kafka.first:5:2,
-                           kafka.second:5:2,
-                           kafka.third:5:2
+                           kafka.stream.first:5:2,
+                           kafka.stream.second:5:2,
+                           kafka.stream.third:5:2
     volumes:
       - /c/docker-volumes/test-kafka-stream/kafka3/data:/kafka
 #      - /c/docker-volumes/test-kafka-stream/kafka3/config:/opt/kafka/config
