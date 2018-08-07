@@ -6,8 +6,10 @@ import com.github.szczurmys.test.kafka.serdes.JsonSerdes;
 import com.github.szczurmys.test.kafka.timestamp.GenericTimestampExtractor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.WindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,13 @@ public class SecondAppMain {
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, TimeUnit.MINUTES.toMillis(1));
+
+        props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, "exactly_once");
+
+        props.put(StreamsConfig.STATE_DIR_CONFIG, "./target/test-kafka-state");
+
+        props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, 3);
+
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<Key, Value> input = builder.stream(
@@ -52,10 +61,10 @@ public class SecondAppMain {
                 )
                 .reduce((value1, value2) ->
                                 new Value(value1.getValue().add(value2.getValue()), max(value1.getLocalDateTime(), value2.getLocalDateTime())),
-                        Materialized.with(
-                                JsonSerdes.json(Key.class),
-                                JsonSerdes.json(Value.class)
-                        ))
+                        Materialized.<Key, Value, WindowStore<Bytes, byte[]>>as("test.kafka.stream.second.state")
+                                .withKeySerde(JsonSerdes.json(Key.class))
+                                .withValueSerde(JsonSerdes.json(Value.class))
+                        )
                 .toStream((key, value) -> key.key())
                 .map((key, value) -> new KeyValue<>(key, new Value(
                         value.getValue(),

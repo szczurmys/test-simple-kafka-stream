@@ -22,13 +22,20 @@ import java.util.stream.Collectors;
 
 public class FirstAppMain {
     private static final Logger logger = LoggerFactory.getLogger(FirstAppMain.class);
-@JsonIgnore
+
+    @JsonIgnore
     public static void main(final String[] args) throws Exception {
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka.stream.first");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "10.0.75.2:31091,10.0.75.2:31092,10.0.75.2:31093");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, "exactly_once");
+
+        props.put(StreamsConfig.STATE_DIR_CONFIG, "./target/test-kafka-state");
+
+        props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, 3);
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<Object, DataListDto> input = builder.stream(
