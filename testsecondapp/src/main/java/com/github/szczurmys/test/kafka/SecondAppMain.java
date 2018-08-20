@@ -8,8 +8,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,9 @@ public class SecondAppMain {
 
         props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, 3);
 
+        //props.put(StreamsConfig.NUM_STANDBY_REPLICAS_CONFIG, 3);
+
+        String secondStateStoreName = "test.kafka.stream.second.state";
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<Key, Value> input = builder.stream(
@@ -53,18 +57,17 @@ public class SecondAppMain {
         );
 
         input.groupByKey()
-
                 .windowedBy(TimeWindows
-                        .of(TimeUnit.MINUTES.toMillis(5))
-                        .until(TimeUnit.MINUTES.toMillis(5))
-
+                        .of(TimeUnit.DAYS.toMillis(1))
+                        .until(TimeUnit.DAYS.toMillis(1))
                 )
                 .reduce((value1, value2) ->
                                 new Value(value1.getValue().add(value2.getValue()), max(value1.getLocalDateTime(), value2.getLocalDateTime())),
-                        Materialized.<Key, Value, WindowStore<Bytes, byte[]>>as("test.kafka.stream.second.state")
+                        Materialized.<Key, Value, WindowStore<Bytes, byte[]>>as(secondStateStoreName)
                                 .withKeySerde(JsonSerdes.json(Key.class))
                                 .withValueSerde(JsonSerdes.json(Value.class))
-                        )
+                        .withCachingEnabled()
+                )
                 .toStream((key, value) -> key.key())
                 .map((key, value) -> new KeyValue<>(key, new Value(
                         value.getValue(),
@@ -85,6 +88,7 @@ public class SecondAppMain {
         try {
             logger.info("Start kafka-stream.");
             streams.start();
+            waitUntilStoreIsQueryable(secondStateStoreName, QueryableStoreTypes.windowStore(), streams);
             latch.await();
         } catch (Throwable e) {
             logger.error("Error kafka-stream.", e);
@@ -97,4 +101,16 @@ public class SecondAppMain {
         return Stream.of(v1, v2).max(LocalDateTime::compareTo).orElse(null);
     }
 
+    private static <T> T waitUntilStoreIsQueryable(final String storeName,
+                                                   final QueryableStoreType<T> queryableStoreType,
+                                                   final KafkaStreams streams) throws InterruptedException {
+        while (true) {
+            try {
+                return streams.store(storeName, queryableStoreType);
+            } catch (InvalidStateStoreException ignored) {
+                // store not yet ready for querying
+                Thread.sleep(100);
+            }
+        }
+    }
 }
