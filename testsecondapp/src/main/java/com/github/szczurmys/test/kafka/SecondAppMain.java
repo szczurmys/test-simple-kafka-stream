@@ -8,7 +8,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.*;
-import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.*;
 import org.slf4j.Logger;
@@ -37,8 +36,6 @@ public class SecondAppMain {
         props.put(StreamsConfig.STATE_DIR_CONFIG, "./target/test-kafka-state");
 
         props.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, 3);
-
-        //props.put(StreamsConfig.NUM_STANDBY_REPLICAS_CONFIG, 3);
 
         String secondStateStoreName = "test.kafka.stream.second.state";
 
@@ -88,7 +85,6 @@ public class SecondAppMain {
         try {
             logger.info("Start kafka-stream.");
             streams.start();
-            waitUntilStoreIsQueryable(secondStateStoreName, QueryableStoreTypes.windowStore(), streams);
             latch.await();
         } catch (Throwable e) {
             logger.error("Error kafka-stream.", e);
@@ -99,18 +95,5 @@ public class SecondAppMain {
 
     private static LocalDateTime max(LocalDateTime v1, LocalDateTime v2) {
         return Stream.of(v1, v2).max(LocalDateTime::compareTo).orElse(null);
-    }
-
-    private static <T> T waitUntilStoreIsQueryable(final String storeName,
-                                                   final QueryableStoreType<T> queryableStoreType,
-                                                   final KafkaStreams streams) throws InterruptedException {
-        while (true) {
-            try {
-                return streams.store(storeName, queryableStoreType);
-            } catch (InvalidStateStoreException ignored) {
-                // store not yet ready for querying
-                Thread.sleep(100);
-            }
-        }
     }
 }
