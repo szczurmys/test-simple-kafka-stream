@@ -8,10 +8,10 @@ services:
       - 2181:2181
     environment:
       ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
     volumes:
-      - /c/docker-volumes/test-kafka-stream/zoo1/data:/data
-      - /c/docker-volumes/test-kafka-stream/zoo1/datalog:/datalog
+      - /opt/docker-volumes/test-kafka-stream/zoo1/data:/data
+      - /opt/docker-volumes/test-kafka-stream/zoo1/datalog:/datalog
   zoo2:
     image: zookeeper
     restart: always
@@ -20,10 +20,10 @@ services:
       - 2182:2181
     environment:
       ZOO_MY_ID: 2
-      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888
     volumes:
-      - /c/docker-volumes/test-kafka-stream/zoo2/data:/data
-      - /c/docker-volumes/test-kafka-stream/zoo2/datalog:/datalog
+      - /opt/docker-volumes/test-kafka-stream/zoo2/data:/data
+      - /opt/docker-volumes/test-kafka-stream/zoo2/datalog:/datalog
   zoo3:
     image: zookeeper
     restart: always
@@ -32,10 +32,10 @@ services:
       - 2183:2181
     environment:
       ZOO_MY_ID: 3
-      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888;2181
     volumes:
-      - /c/docker-volumes/test-kafka-stream/zoo3/data:/data
-      - /c/docker-volumes/test-kafka-stream/zoo3/datalog:/datalog
+      - /opt/docker-volumes/test-kafka-stream/zoo3/data:/data
+      - /opt/docker-volumes/test-kafka-stream/zoo3/datalog:/datalog
   kafka1:
     image: wurstmeister/kafka
     restart: always
@@ -43,7 +43,7 @@ services:
       - "31091:19092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
-      HOSTNAME_COMMAND: echo '10.0.75.2'
+      HOSTNAME_COMMAND: echo '127.0.0.1'
       BROKER_ID_COMMAND: echo '1'
       PORT_COMMAND: echo '31091'
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:_{PORT_COMMAND}
@@ -54,10 +54,12 @@ services:
       KAFKA_CREATE_TOPICS: >-
                            kafka.stream.first:5:2,
                            kafka.stream.second:5:2,
-                           kafka.stream.third:5:2
+                           kafka.stream.third:5:2,
+                           kafka.stream.fourth:5:2,
+                           kafka.stream.fifth:5:2
     volumes:
-      - /c/docker-volumes/test-kafka-stream/kafka1/data:/kafka
-#      - /c/docker-volumes/test-kafka-stream/kafka1/config:/opt/kafka/config
+      - /opt/docker-volumes/test-kafka-stream/kafka1/data:/kafka
+#      - /opt/docker-volumes/test-kafka-stream/kafka1/config:/opt/kafka/config
     depends_on:
       - zoo1
       - zoo2
@@ -69,7 +71,7 @@ services:
       - "31092:19092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
-      HOSTNAME_COMMAND: echo '10.0.75.2'
+      HOSTNAME_COMMAND: echo '127.0.0.1'
       BROKER_ID_COMMAND: echo '2'
       PORT_COMMAND: echo '31092'
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:_{PORT_COMMAND}
@@ -79,10 +81,12 @@ services:
       KAFKA_CREATE_TOPICS: >-
                            kafka.stream.first:5:2,
                            kafka.stream.second:5:2,
-                           kafka.stream.third:5:2
+                           kafka.stream.third:5:2,
+                           kafka.stream.fourth:5:2,
+                           kafka.stream.fifth:5:2
     volumes:
-      - /c/docker-volumes/test-kafka-stream/kafka2/data:/kafka
-#      - /c/docker-volumes/test-kafka-stream/kafka2/config:/opt/kafka/config
+      - /opt/docker-volumes/test-kafka-stream/kafka2/data:/kafka
+#      - /opt/docker-volumes/test-kafka-stream/kafka2/config:/opt/kafka/config
     depends_on:
       - zoo1
       - zoo2
@@ -94,7 +98,7 @@ services:
       - "31093:19092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
-      HOSTNAME_COMMAND: echo '10.0.75.2'
+      HOSTNAME_COMMAND: echo '127.0.0.1'
       BROKER_ID_COMMAND: echo '3'
       PORT_COMMAND: echo '31093'
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:_{PORT_COMMAND}
@@ -105,10 +109,12 @@ services:
       KAFKA_CREATE_TOPICS: >-
                            kafka.stream.first:5:2,
                            kafka.stream.second:5:2,
-                           kafka.stream.third:5:2
+                           kafka.stream.third:5:2,
+                           kafka.stream.fourth:5:2,
+                           kafka.stream.fifth:5:2
     volumes:
-      - /c/docker-volumes/test-kafka-stream/kafka3/data:/kafka
-#      - /c/docker-volumes/test-kafka-stream/kafka3/config:/opt/kafka/config
+      - /opt/docker-volumes/test-kafka-stream/kafka3/data:/kafka
+#      - /opt/docker-volumes/test-kafka-stream/kafka3/config:/opt/kafka/config
     depends_on:
       - zoo1
       - zoo2
@@ -116,3 +122,5 @@ services:
 
 #example run command:
 #docker-compose -f docker-compose.yml -p testkafkastream up
+
+#docker-compose -f docker-compose.yml -p testkafkastream up --scale kafka1=0 --scale kafka2=0 --scale kafka3=0
