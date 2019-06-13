@@ -10,6 +10,7 @@
     <modules>
         <module>testfirstapp</module>
         <module>testsecondapp</module>
+        <module>testthirdapp</module>
         <module>testkafkastreamutils</module>
     </modules>
 
@@ -19,7 +20,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
 
-        <kafka.version>2.0.0</kafka.version>
+        <kafka.version>2.2.1</kafka.version>
         <scala.version>2.12</scala.version>
         <log4j.version>1.7.25</log4j.version>
     </properties>
